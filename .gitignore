@@ -1,0 +1,6 @@
+# ห้ามเอาไฟล์เหล่านี้ขึ้น GitHub เด็ดขาด
+.env
+env/
+media/
+__pycache__/
+db.sqlite3

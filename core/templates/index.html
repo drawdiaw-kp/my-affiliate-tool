@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video & Affiliate Workflow</title>
+    <style>
+        /* ตั้งค่าตัวแปรสีเริ่มต้น (Light Mode) */
+        :root {
+            --bg-color: #f9fafb;
+            --text-color: #1f2937;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: #e5e7eb;
+            --accent-yellow: #facc15;
+            --accent-red: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ตั้งค่าตัวแปรสีสำหรับ Dark Mode */
+        .dark-mode {
+            --bg-color: #111827;
+            --text-color: #f9fafb;
+            --card-bg: rgba(31, 41, 55, 0.85);
+            --border-color: #374151;
+            --accent-yellow: #eab308;
+            --accent-red: #dc2626;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px); /* เอฟเฟกต์กระจกเบาๆ */
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo span:nth-child(1) { color: var(--accent-red); }
+        .logo span:nth-child(2) { color: var(--accent-yellow); }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--border-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+        }
+
+        h2 {
+            margin-top: 0;
+            border-left: 4px solid var(--accent-yellow);
+            padding-left: 10px;
+            font-size: 1.25rem;
+        }
+
+        /* ปุ่มและ Input */
+        button.primary-btn {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        button.primary-btn:hover {
+            opacity: 0.9;
+        }
+
+        textarea, input[type="file"] {
+            width: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* ตารางสินค้าจำลอง */
+        .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* วิดีโอจำลอง */
+        .video-placeholder {
+            width: 100%;
+            height: 200px;
+            background-color: #000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"><span>Affiliate</span><span>Flow</span></div>
+        <button class="theme-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🔗 1. ข้อมูลและรูปภาพสินค้า</h2>
+            <label>วางลิงก์สินค้า (Shopee/Lazada) หรือพิมพ์ชื่อสินค้า:</label>
+            <input type="text" id="productSource" placeholder="เช่น https://shopee.co.th/... หรือ แก้วน้ำเก็บความเย็น" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc;">
+
+            <label>อัปโหลดรูปภาพสินค้า (เลือกได้สูงสุด 3 รูป เพื่อความแม่นยำ):</label>
+            <input type="file" id="imageUpload" accept="image/*" multiple onchange="checkFileCount(this)" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;">
+            <small id="fileWarning" style="color: #E91E63; display: none;">*ระบบรับได้สูงสุด 3 รูป (รูปแรกจะถูกใช้ทำวิดีโอ)</small>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>🤖 2. สร้างคอนเทนต์ด้วย AI</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button onclick="generateManual('caption')" class="primary-btn" style="flex: 1; background-color: #4CAF50; color: white;">📝 เจนเฉพาะแคปชั่น</button>
+                <button onclick="generateManual('script')" class="primary-btn" style="flex: 1; background-color: #2196F3; color: white;">🎙️ เจนเฉพาะสคริปต์</button>
+                <button onclick="generateManual('all')" class="primary-btn" style="flex: 1; background-color: #FF9800; color: white;">✨ เจนทั้งคู่</button>
+            </div>
+
+            <label>แคปชั่น (พร้อมแฮชแท็ก):</label>
+            <textarea id="captionBox" rows="4" placeholder="แคปชั่นจะแสดงที่นี่..."></textarea>
+    
+            <label>สคริปต์เสียงพากย์:</label>
+            <textarea id="scriptBox" rows="3" placeholder="สคริปต์จะแสดงที่นี่..."></textarea>
+    
+            <button onclick="playAudio()" class="primary-btn" style="background-color: #FFD700; color: #000; margin-top: 10px; width: 100%;">
+                🔊 ฟังเสียงพากย์ไทยด้วย AI
+            </button>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>🎬 3. สร้างวิดีโอโฆษณา (Image-to-Video)</h2>
+           <button onclick="createVideo()" id="videoBtn" class="primary-btn" style="background-color: #E91E63; color: white; width: 100%;">
+               ✨ เริ่มสร้างวิดีโอจากรูปภาพด้านบน
+            </button>
+
+            <div id="videoResultBox" style="display: none; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px;">
+                <h4 style="margin-top: 0; color: #333;">🎥 วิดีโอสินค้าของคุณ</h4>
+                <div id="videoLoading" style="color: #E91E63; margin-bottom: 10px;"></div>
+        
+                <video id="finalVideo" controls style="width: 100%; max-height: 300px; border-radius: 8px; display: none; background: #000;">
+                    <source src="" type="video/mp4">
+                </video>
+        
+                <a id="downloadVideoBtn" href="#" download="Affiliate_Video.mp4" class="primary-btn" style="background: #28a745; text-decoration: none; display: none; margin-top: 10px; width: 100%; box-sizing: border-box;">
+                    📥 ดาวน์โหลดวิดีโอ
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>🗂️ 4. คลังเสบียงคอนเทนต์ (ประวัติย้อนหลัง)</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button onclick="loadHistory()" class="primary-btn" style="background: #6c757d; color: white;">
+                    🔄 รีเฟรชข้อมูล
+                </button>
+                <button onclick="clearHistory()" class="primary-btn" style="background: #dc3545; color: white;">
+                    🗑️ ล้างประวัติทั้งหมด
+                </button>
+            </div>
+            <div id="historyContainer">
+                <p style="color: #666;">กำลังโหลดข้อมูล...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันสลับ Dark Mode
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const btn = document.querySelector('.theme-toggle');
+            if (body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️ Light Mode';
+            } else {
+                btn.textContent = '🌙 Dark Mode';
+            }
+        }
+        
+        // 1. ฟังก์ชันแยกเจนแคปชั่นและสคริปต์ (อัปเกรดส่งรูปภาพได้)
+        // ฟังก์ชันตรวจสอบไม่ให้เกิน 3 รูป
+        function checkFileCount(input) {
+            const warning = document.getElementById('fileWarning');
+            if (input.files.length > 3) {
+                warning.style.display = 'block';
+                input.value = ''; // ล้างค่าทิ้งถ้าเกิน
+                alert("อัปโหลดได้สูงสุด 3 รูปครับพาร์ทเนอร์!");
+            } else if (input.files.length > 0) {
+                warning.style.display = 'block';
+                warning.style.color = '#28a745';
+                warning.innerText = `✅ เลือกแล้ว ${input.files.length} รูป (รูปแรกจะถูกใช้ทำวิดีโอ)`;
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        // ฟังก์ชันแยกเจนแคปชั่นและสคริปต์ (รองรับหลายรูป)
+        async function generateManual(type) {
+            const source = document.getElementById('productSource').value;
+            const fileInput = document.getElementById('imageUpload');
+            const captionBox = document.getElementById('captionBox');
+            const scriptBox = document.getElementById('scriptBox');
+
+            if(!source && fileInput.files.length === 0) { 
+                alert("กรุณาใส่ลิงก์ หรือ อัปโหลดรูปภาพสินค้าก่อนครับ"); 
+                return; 
+            }
+
+            if(type === 'caption' || type === 'all') captionBox.value = "⏳ AI กำลังวิเคราะห์ข้อมูลและรูปภาพทั้งหมด...";
+            if(type === 'script' || type === 'all') scriptBox.value = "⏳ AI กำลังร่างสคริปต์...";
+
+            const formData = new FormData();
+            formData.append('product_name', source);
+            formData.append('type', type);
+        
+            // วนลูปจับรูปภาพทุกรูปใส่เข้าไปใน formData
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('images', fileInput.files[i]); 
+            }
+
+            try {
+                const response = await fetch('/generate-content/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if(data.error) {
+                    alert("❌ เกิดข้อผิดพลาด: " + data.error);
+                    return;
+                }
+
+                if(type === 'caption' || type === 'all') captionBox.value = data.caption || "";
+                if(type === 'script' || type === 'all') scriptBox.value = data.script || "";
+                loadHistory();
+            
+            } catch (error) {
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อระบบครับ");
+            }
+        }
+
+        async function playAudio() {
+        // ดึงข้อความจากกล่องที่มี id="scriptBox"
+            const scriptText = document.getElementById('scriptBox').value;
+    
+            if(!scriptText || scriptText.includes("⏳")) {
+                alert("กรุณารอ AI เจนสคริปต์ให้เสร็จก่อนนะครับรู");
+            return;
+            }
+
+            // แจ้งเตือนสถานะเล็กน้อยบนปุ่ม (Optional)
+            console.log("กำลังสร้างเสียงพากย์...");
+
+            try {
+                const response = await fetch(`/tts/?text=${encodeURIComponent(scriptText)}`);
+                const data = await response.json();
+
+                if(data.audio_url) {
+                    // ใส่ Timestamp ต่อท้ายเพื่อป้องกัน Browser เล่นไฟล์เก่าที่ค้างใน Cache
+                    const audio = new Audio(data.audio_url + '?t=' + new Date().getTime());
+                    audio.play();
+                } else {
+                    alert("เกิดข้อผิดพลาดในการสร้างไฟล์เสียง");
+                }
+            } catch (error) {
+                console.error("TTS Error:", error);
+                alert("เชื่อมต่อระบบเสียงพากย์ไม่ได้ครับ");
+            }
+        }
+
+        // ตัวแปรเก็บข้อมูลชั่วคราว
+        let historyData = [];
+
+
+        // ฟังก์ชันโหลดประวัติ (อัปเดตใหม่มีปุ่มลบ)
+        async function loadHistory() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = "⏳ กำลังโหลดประวัติคอนเทนต์...";
+            try {
+                const response = await fetch('/get-history/');
+                const data = await response.json();
+        
+                if(!data.history || data.history.length === 0) {
+                    container.innerHTML = "<p>ยังไม่มีประวัติการสร้างคอนเทนต์ครับ</p>";
+                    return;
+                }
+
+                historyData = data.history;
+                container.innerHTML = "";
+        
+                data.history.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.style = "background: rgba(255,255,255,0.8); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #FF4747;";
+                    div.innerHTML = `
+                        <strong style="color: #333;">🛍️ ${item.product_name}</strong> 
+                        <small style="color: #888; display: block; margin-bottom: 10px;">เวลา: ${item.date}</small>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <button onclick="copyToClipboard(${index}, 'caption')" class="btn-outline" style="font-size: 0.8rem; padding: 5px 10px;">📋 แคปชั่น</button>
+                                <button onclick="copyToClipboard(${index}, 'script')" class="btn-outline" style="font-size: 0.8rem; padding: 5px 10px;">📋 สคริปต์</button>
+                            </div>
+                            <button onclick="deleteSingleItem(${item.id})" style="font-size: 0.8rem; padding: 5px 10px; background: transparent; color: red; border: 1px solid red; border-radius: 5px; cursor: pointer;">🗑️ ลบ</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                container.innerHTML = "❌ โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้งครับ";
+            }
+        }
+
+            // วางฟังก์ชันนี้ต่อท้ายลงไปเลยครับ (เอาไว้สั่งลบรายชิ้น)
+            async function deleteSingleItem(itemId) {
+                if(confirm("แน่ใจหรือไม่ว่าจะลบรายการนี้?")) {
+                    try {
+                        const response = await fetch(`/delete-item/${itemId}/`);
+                        const data = await response.json();
+                        if(data.status === 'success') {
+                            loadHistory(); // ลบเสร็จให้โหลดข้อมูลใหม่ทันที
+                        } else {
+                            alert("ลบไม่สำเร็จครับ");
+                        }
+                    } catch (error) {
+                        alert("เกิดข้อผิดพลาดในการลบครับ");
+                    }
+                }
+            }
+
+        // ฟังก์ชันก๊อปปี้ข้อความ
+        function copyToClipboard(index, type) {
+            const text = type === 'caption' ? historyData[index].caption : historyData[index].script;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ ก๊อปปี้ข้อความเรียบร้อย! นำไปวางในโซเชียลได้เลยครับ");
+            }).catch(err => {
+                alert("❌ ก๊อปปี้ไม่สำเร็จ กรุณาลองใหม่");
+            });
+        }
+
+        // ให้ระบบดึงประวัติอัตโนมัติตอนเปิดเว็บ
+        window.onload = loadHistory;
+
+        async function generateVideo() {
+            const videoBtn = document.getElementById('genVideoBtn'); // สมมติตั้งชื่อไอดีปุ่ม
+            const videoContainer = document.getElementById('videoContainer');
+            
+            if (!videoBtn) {
+                console.error("หาปุ่ม id='genVideoBtn' ไม่เจอครับคุณครู!");
+                return;
+            }
+
+            // 1. เปลี่ยนสถานะปุ่มให้รู้ว่ากำลังทำ
+            videoBtn.innerText = "⏳ กำลังสร้างวิดีโอ (ห้ามปิดหน้านี้)...";
+            videoBtn.disabled = true; // ป้องกันการกดซ้ำ
+            videoBtn.style.opacity = "0.5";
+
+            try {
+                // ... โค้ดส่งคำสั่งไป API ...
+        
+                // 2. เมื่อเสร็จแล้ว
+                videoBtn.innerText = "🎬 สร้างวิดีโออีกครั้ง";
+                videoBtn.disabled = false;
+                videoBtn.style.opacity = "1";
+        
+                // แสดงวิดีโอ
+                videoContainer.style.display = 'block';
+                alert("วิดีโอของคุณครูพร้อมใช้งานแล้วครับ! 🎉");
+        
+            } catch (error) {
+                videoBtn.innerText = "❌ ลองใหม่อีกครั้ง";
+                videoBtn.disabled = false;
+            }
+        }
+
+        // ฟังก์ชันล้างประวัติทั้งหมด
+            async function clearHistory() {
+                // ถามเพื่อความแน่ใจก่อนลบจริง
+                const confirmDelete = confirm("⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบประวัติคอนเทนต์ทั้งหมด? (ข้อมูลจะไม่สามารถกู้คืนได้)");
+        
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch('/clear-history/');
+                        const data = await response.json();
+                
+                        if (data.status === 'success') {
+                            alert("✅ ล้างประวัติเรียบร้อยแล้วครับ!");
+                            loadHistory(); // โหลดหน้าต่างให้เป็นค่าว่างทันที
+                        } else {
+                            alert("❌ เกิดข้อผิดพลาด: " + data.error);
+                        }
+                    } catch (error) {
+                        alert("❌ เชื่อมต่อระบบขัดข้องครับ");
+                    }
+                }
+            }
+            // ฟังก์ชันส่งรูปภาพไปให้ AI สร้างวิดีโอ
+            async function createVideo() {
+                const fileInput = document.getElementById('imageUpload');
+                const videoBtn = document.getElementById('videoBtn');
+                const resultBox = document.getElementById('videoResultBox');
+                const videoLoading = document.getElementById('videoLoading');
+                const finalVideo = document.getElementById('finalVideo');
+                const downloadBtn = document.getElementById('downloadVideoBtn');
+
+                if (fileInput.files.length === 0) {
+                    alert("กรุณาอัปโหลดรูปภาพสินค้าก่อนครับ");
+                    return;
+                }
+
+                // เตรียมข้อมูลไฟล์
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                // เปลี่ยนสถานะ UI ระหว่างรอ
+                videoBtn.disabled = true;
+                videoBtn.style.opacity = '0.6';
+                resultBox.style.display = 'block';
+                finalVideo.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                videoLoading.innerHTML = "⏳ กำลังประมวลผล Image-to-Video... (โปรดรอสักครู่)";
+
+                try {
+                    const response = await fetch('/generate-video/', {
+                        method: 'POST',
+                        body: formData,
+                        // ไม่ต้องใส่ Headers ของ Content-Type เพราะ FormData จัดการให้เอง
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        videoLoading.innerHTML = "✅ สร้างวิดีโอสำเร็จ!";
+                        // นำ URL วิดีโอมาใส่ (ตอนนี้จำลองเป็นวิดีโอเปล่า)
+                        finalVideo.src = data.video_url;
+                        finalVideo.style.display = 'block';
+                
+                        downloadBtn.href = data.video_url;
+                        downloadBtn.style.display = 'inline-block';
+                    } else {
+                        videoLoading.innerHTML = "❌ เกิดข้อผิดพลาด: " + data.error;
+                    }
+                } catch (error) {
+                    videoLoading.innerHTML = "❌ เชื่อมต่อระบบขัดข้องครับ";
+                } finally {
+                    videoBtn.disabled = false;
+                    videoBtn.style.opacity = '1';
+                }
+            }
+    </script>
+    
+</body>
+</html>
